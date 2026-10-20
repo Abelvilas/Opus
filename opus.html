@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opus</title>
+<style>
+  :root{--bg:#f4f6f9;--card:#fff;--ink:#1b2430;--suave:#667085;--borda:#e3e8ef;--acento:#059669;--acento2:#047857;--ok:#059669;--alerta:#dc2626;--aviso:#d97706;--chip:#eef2f7}
+  @media(prefers-color-scheme:dark){:root{--bg:#0f141b;--card:#161c26;--ink:#e6edf3;--suave:#9aa5b1;--borda:#28313d;--acento:#34d399;--acento2:#10b981;--ok:#34d399;--alerta:#f87171;--aviso:#fbbf24;--chip:#1e2733}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 "Segoe UI",system-ui,sans-serif;padding:24px 16px}
+  .wrap{max-width:960px;margin:0 auto}
+  h1{font-size:22px;margin:0}
+  .brand{display:flex;align-items:center;gap:14px;margin:0 0 4px}
+  .brand .logo{width:46px;height:46px;flex:none;border-radius:13px;box-shadow:0 4px 12px rgba(5,150,105,.28)}
+  .brand .wm{font-size:26px;font-weight:800;letter-spacing:-.01em;line-height:1.05}
+  .brand .pt{color:var(--suave);font-size:11px;margin-top:3px;text-transform:uppercase;letter-spacing:.09em}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 6px;align-items:center}
+  button,.btn{font:inherit;border:1px solid var(--borda);background:var(--card);color:var(--ink);border-radius:9px;padding:8px 13px;cursor:pointer;font-weight:600}
+  button:hover{border-color:var(--acento)}
+  button.primary{background:var(--acento);border-color:var(--acento);color:#04120c}
+  button.danger:hover{border-color:var(--alerta);color:var(--alerta)}
+  .spacer{flex:1}
+  .sync{font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:var(--chip);color:var(--suave);white-space:nowrap}
+  .sync.ok{color:var(--ok)} .sync.busy{color:var(--aviso)} .sync.warn{color:var(--alerta)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+  .kpi{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:13px 15px}
+  .kpi .lab{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--suave)}
+  .kpi .val{font-size:22px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
+  .pos{color:var(--ok)} .neg{color:var(--alerta)}
+  .tabs{display:flex;gap:6px;margin:18px 0 10px;border-bottom:1px solid var(--borda)}
+  .tab{padding:9px 16px;cursor:pointer;font-weight:700;color:var(--suave);border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tab.on{color:var(--ink);border-bottom-color:var(--acento)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--suave);font-weight:600;padding:8px 8px;border-bottom:1px solid var(--borda)}
+  td{padding:7px 8px;border-bottom:1px solid var(--borda);vertical-align:middle}
+  tr.pago td{opacity:.62}
+  tr.sep td{background:transparent;border:0;padding:16px 8px 4px;font-weight:700;color:var(--suave);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  .dia{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;background:var(--chip);border-radius:8px;font-weight:700;font-variant-numeric:tabular-nums}
+  .desc{font-weight:600}
+  .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .acc{text-align:right;font-variant-numeric:tabular-nums;color:var(--suave);white-space:nowrap}
+  .st{border:0;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .st.pago{background:rgba(5,150,105,.16);color:var(--ok)}
+  .st.pendente{background:rgba(217,119,6,.16);color:var(--aviso)}
+  .st.agendado{background:rgba(37,99,235,.16);color:#2563eb}
+  @media(prefers-color-scheme:dark){.st.agendado{color:#60a5fa}}
+  .when{font-size:11px;color:var(--suave);display:block;margin-top:2px}
+  .rec{font-size:11px;color:var(--suave)}
+  .rec .on{color:var(--acento);font-weight:700}
+  .act{display:flex;gap:4px;justify-content:flex-end}
+  .act button{padding:4px 8px;font-size:12px;border-radius:7px}
+  .mini{color:var(--suave);font-size:12px}
+  dialog{border:1px solid var(--borda);background:var(--card);color:var(--ink);border-radius:14px;padding:0;max-width:460px;width:92%}
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+  .dlg{padding:20px 22px}
+  .dlg h3{margin:0 0 14px;font-size:17px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12px;color:var(--suave);margin-bottom:4px;font-weight:600}
+  .field input,.field select{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--borda);border-radius:9px;background:var(--bg);color:var(--ink)}
+  .field.chk{display:flex;align-items:center;gap:9px}
+  .field.chk input{width:auto}
+  .field.chk label{margin:0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .dlg-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap}
+  .falta{display:inline-block;background:var(--chip);border-radius:7px;padding:2px 8px;font-size:12px;font-weight:700}
+  .dias{font-size:12px;font-weight:700}
+  .dias.urg{color:var(--alerta)}
+  .hint{color:var(--suave);font-size:12px;margin:4px 0 0}
+  .empty{text-align:center;color:var(--suave);padding:30px;font-size:14px}
+  input[type=file]{display:none}
+  .footer{margin-top:28px;color:var(--suave);font-size:12px;text-align:center}
+
+  /* ─────────── MOBILE: cada linha vira cartão ─────────── */
+  @media(max-width:640px){
+    body{padding:16px 12px}
+    .brand .wm{font-size:22px}
+    .kpi .val{font-size:19px}
+    .cards{grid-template-columns:repeat(auto-fit,minmax(135px,1fr))}
+    thead{display:none}
+    table,tbody,tr,td{display:block;width:100%}
+    tr.sep{padding:14px 2px 2px}
+    tbody tr:not(.sep){border:1px solid var(--borda);border-radius:12px;background:var(--card);margin:10px 0;padding:6px 13px}
+    tbody tr:not(.sep) td{border:0;padding:5px 0;display:flex;justify-content:space-between;align-items:center;gap:14px}
+    tbody tr:not(.sep) td::before{content:attr(data-label);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--suave);font-weight:700}
+    td.desc{display:block;padding:4px 0 2px!important}
+    td.desc::before{display:none}
+    td.num,td.acc{justify-content:space-between;text-align:left}
+    td .act{justify-content:flex-end;width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#047857"/></linearGradient></defs><rect x="2" y="2" width="44" height="44" rx="13" fill="url(#g)"/><ellipse cx="17" cy="13" rx="15" ry="9" fill="#fff" opacity=".14"/><g fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round"><circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="2.4" fill="#fff" stroke="none"/></g></svg>
+    <div><div class="wm">Opus</div><div class="pt">painel pessoal</div></div>
+  </div>
+
+  <div class="toolbar">
+    <button class="primary" id="btAdd">+ Lançamento</button>
+    <button id="btCiclo" title="Reinicia as despesas recorrentes e avança o mês">↻ Novo ciclo</button>
+    <span class="mini" id="cicloLab"></span>
+    <span class="spacer"></span>
+    <span class="sync" id="syncLab">local</span>
+    <button id="btGit" title="Sincronizar com o GitHub">☁ Git</button>
+    <button id="btSaldoIni" title="Saldo inicial do ciclo">Saldo: <b id="saldoIniLab">R$ 0,00</b></button>
+    <button id="btExport">Exportar</button>
+    <button id="btImport">Importar</button>
+    <input type="file" id="fileInput" accept="application/json,.json">
+  </div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="tabs">
+    <div class="tab on" data-tab="contas">Contas do mês</div>
+    <div class="tab" data-tab="dividas">Dívidas</div>
+  </div>
+
+  <div id="viewContas">
+    <table>
+      <thead><tr>
+        <th style="width:44px">Dia</th><th>Descrição</th><th class="num">Valor</th>
+        <th style="width:120px">Status</th><th class="acc">Saldo</th><th style="width:150px"></th>
+      </tr></thead>
+      <tbody id="tbContas"></tbody>
+    </table>
+  </div>
+
+  <div id="viewDividas" style="display:none">
+    <table>
+      <thead><tr>
+        <th style="width:44px">Dia</th><th>Descrição</th><th>Tipo</th><th class="num">Valor</th>
+        <th style="width:120px">Status</th><th>Próxima</th><th title="dias até a próxima">Dias</th>
+        <th title="parcelas restantes">Falta</th><th>Última</th><th style="width:110px"></th>
+      </tr></thead>
+      <tbody id="tbDividas"></tbody>
+    </table>
+    <p class="hint">As dívidas ficam <b>fora</b> do saldo mensal. “Dias” e “Falta” são calculados a partir de hoje e das datas de próxima/última parcela.</p>
+  </div>
+
+  <div class="footer">Dados salvos neste navegador + (opcional) sincronizados no seu GitHub privado. · Opus</div>
+</div>
+
+<!-- ───────────── diálogo de lançamento ───────────── -->
+<dialog id="dlg">
+  <form method="dialog" class="dlg" id="form">
+    <h3 id="dlgTitle">Lançamento</h3>
+    <div class="grid2">
+      <div class="field"><label>Dia do mês</label><input type="number" id="f_dia" min="1" max="31" required></div>
+      <div class="field"><label>Valor (negativo = saída)</label><input type="text" id="f_valor" placeholder="-100,00" inputmode="decimal"></div>
+    </div>
+    <div class="field"><label>Descrição</label><input type="text" id="f_desc" required></div>
+
+    <div id="camposConta">
+      <div class="grid2">
+        <div class="field"><label>Mês</label><select id="f_mes"><option value="0">Este mês</option><option value="1">Mês seguinte</option></select></div>
+        <div class="field"><label>Status</label><select id="f_status"><option value="pendente">Pendente</option><option value="pago">Pago</option><option value="agendado">Agendado</option></select></div>
+      </div>
+      <div class="field chk"><input type="checkbox" id="f_rec" checked><label for="f_rec">Recorrente (repete a cada ciclo)</label></div>
+    </div>
+
+    <div id="camposDivida" style="display:none">
+      <div class="grid2">
+        <div class="field"><label>Tipo</label><select id="f_tipo"><option>DÍVIDA</option><option>CARTÃO</option></select></div>
+        <div class="field"><label>Status</label><select id="f_statusD"><option value="pendente">Pendente</option><option value="pago">Pago</option><option value="agendado">Agendado</option></select></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Próxima parcela</label><input type="date" id="f_proxima"></div>
+        <div class="field"><label>Última parcela</label><input type="date" id="f_ultima"></div>
+      </div>
+    </div>
+
+    <div class="field" id="campoPagoEm" style="display:none"><label>Pago em</label><input type="date" id="f_pagoEm"></div>
+
+    <div class="dlg-actions">
+      <button type="button" id="btDel" class="danger" style="margin-right:auto;display:none">Excluir</button>
+      <button type="button" id="btCancel">Cancelar</button>
+      <button type="submit" class="primary">Salvar</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ───────────── diálogo GitHub ───────────── -->
+<dialog id="dlgGit">
+  <div class="dlg">
+    <h3>☁ Sincronizar com o GitHub</h3>
+    <p class="hint" style="margin-bottom:14px">Os dados ficam num <b>repositório privado</b> seu. O token fica salvo só neste aparelho (nada é enviado pra outro serviço).</p>
+    <div class="grid2">
+      <div class="field"><label>Owner (usuário)</label><input type="text" id="g_owner" placeholder="Abelvilas" autocomplete="off"></div>
+      <div class="field"><label>Repositório</label><input type="text" id="g_repo" placeholder="Be" autocomplete="off"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Arquivo (path)</label><input type="text" id="g_path" placeholder="opus.json" autocomplete="off"></div>
+      <div class="field"><label>Branch</label><input type="text" id="g_branch" placeholder="main" autocomplete="off"></div>
+    </div>
+    <div class="field"><label>Token (fine-grained PAT · Contents: Read+Write)</label><input type="password" id="g_token" placeholder="github_pat_…" autocomplete="off"></div>
+    <p class="hint" id="g_msg" style="min-height:16px"></p>
+    <div class="dlg-actions">
+      <button type="button" id="g_test">Testar</button>
+      <button type="button" id="g_pull">⬇ Puxar do git</button>
+      <button type="button" id="g_push">⬆ Enviar pro git</button>
+      <button type="button" id="g_close">Fechar</button>
+      <button type="button" id="g_save" class="primary">Salvar config</button>
+    </div>
+    <p class="hint" style="margin-top:12px"><b>Como criar o token:</b> GitHub → Settings → Developer settings → <b>Fine-grained tokens</b> → Generate new token → <i>Only select repositories</i> = seu repo → Permissions → <b>Contents: Read and write</b> → gere e cole acima.</p>
+  </div>
+</dialog>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+//  Cash — estado em JSON (localStorage) + sync opcional com GitHub
+// ═══════════════════════════════════════════════════════════════════════════
+var KEY='cash_dados_v1', GKEY='cash_git_v1';
+var uid=function(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);};
+
+function hoje(){return new Date().toISOString().slice(0,10);}
+function cicloHoje(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+
+function semente(){
+  var C=[
+    [21,'pix',13700,'pago',0],[21,'UNIMED',-4155,'pago',0],[22,'Div Itau',-612.59,'pago',0],
+    [23,'Cartão Crédito Itau 0319',-4900,'pendente',0],[23,'CC Porto Seguro',-358.06,'pendente',0],
+    [25,'Itau Seguro',-35.59,'pendente',0],[25,'Vivo Ab RJ',-46,'pendente',0],[25,'Vivo Is',-75,'pendente',0],
+    [25,'CC Hoje iphone',-251,'pendente',0],[26,'Sisejufe',-160.57,'pendente',0],[30,'Afpesp',-46,'pendente',0],
+    [5,'Aluguel **',-8000,'pendente',1],[10,'Mae',5000,'pendente',1],[10,'Cartão Nubank',-700,'pendente',1],
+    [10,'Sem Parar',-75,'pendente',1],[10,'DIV - Itau',0,'pendente',1],[10,'Sem Parar',-381.44,'pendente',1],
+    [12,'Seguro Rav - Tokio',-210.65,'pendente',1]
+  ].map(function(r,i){return {id:uid(),dia:r[0],desc:r[1],valor:r[2],status:r[3],mes:r[4],rec:true,pagoEm:r[3]==='pago'?hoje():null,ordem:i};});
+  var D=[
+    [23,'Nu',-630.93,'pago','DÍVIDA','2026-11-23','2029-11-23'],[25,'CC CEF',-1200,'pendente','CARTÃO',null,null],
+    [6,'Nu',-579.47,'pago','DÍVIDA','2026-12-07','2028-03-06'],[10,'ITAU',-1736.55,'pago','DÍVIDA','2026-11-10','2031-10-10'],
+    [10,'ITAU',-215.75,'pago','DÍVIDA','2027-01-10','2031-11-10'],[10,'CC MercadoPago',-700,'pago','CARTÃO',null,null],
+    [12,'Bradesco',-1205.48,'pago','DÍVIDA','2026-11-12','2028-01-12'],[16,'Bradesco',-469.97,'pago','DÍVIDA','2026-12-30','2027-07-15'],
+    [16,'MercadoPago',-1055,'agendado','DÍVIDA','2026-10-16',null],[16,'MercadoPago',-645.68,'agendado','DÍVIDA','2026-10-16','2026-12-16']
+  ].map(function(r,i){return {id:uid(),dia:r[0],desc:r[1],valor:r[2],status:r[3],tipo:r[4],proxima:r[5],ultima:r[6],ordem:i};});
+  return {versao:1,saldoInicial:0,ciclo:cicloHoje(),contas:C,dividas:D};
+}
+
+var DADOS=carregar();
+function carregar(){try{var s=localStorage.getItem(KEY);if(s)return JSON.parse(s);}catch(e){}return semente();}
+function persistLocal(){try{localStorage.setItem(KEY,JSON.stringify(DADOS));}catch(e){}}
+
+// ───────────── formatação ─────────────
+function brl(n){var v=Number(n)||0;return (v<0?'-':'')+'R$ '+Math.abs(v).toLocaleString('pt-br',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function parseNum(s){if(s==null)return 0;s=String(s).trim().replace(/r\$/i,'').replace(/\s/g,'');if(!s)return 0;if(s.indexOf(',')>-1)s=s.replace(/\./g,'').replace(',','.');var n=parseFloat(s);return isNaN(n)?0:n;}
+function dataBR(iso){if(!iso)return '—';var p=iso.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function mesNome(ciclo){var m=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];var p=ciclo.split('-');return m[(+p[1])-1]+'/'+p[0];}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function diasAte(iso){if(!iso)return null;return Math.round((new Date(iso)-new Date(hoje()))/864e5);}
+function parcelasFalta(prox,ult){if(!prox||!ult)return null;var p=prox.split('-'),u=ult.split('-');var m=(+u[0]-+p[0])*12+(+u[1]-+p[1]);return m<0?null:m+1;}
+function rotulo(s){return s==='pago'?'PAGO':s==='agendado'?'AGENDADO':'pendente';}
+
+// ───────────── render ─────────────
+var abaAtual='contas';
+function render(){renderLocal();agendarPush();}
+function renderLocal(){
+  document.getElementById('cicloLab').textContent='Ciclo '+mesNome(DADOS.ciclo);
+  document.getElementById('saldoIniLab').textContent=brl(DADOS.saldoInicial);
+  renderCards();renderContas();renderDividas();persistLocal();
+}
+
+function renderCards(){
+  var pago=DADOS.saldoInicial, proj=DADOS.saldoInicial, aPagar=0;
+  DADOS.contas.forEach(function(c){proj+=c.valor;if(c.status==='pago')pago+=c.valor;else if(c.valor<0)aPagar+=c.valor;});
+  var divTotal=0, divAberto=0;
+  DADOS.dividas.forEach(function(d){divTotal+=d.valor;if(d.status!=='pago')divAberto+=d.valor;});
+  function cls(n){return n<0?'neg':'pos';}
+  function card(lab,val){return '<div class="kpi"><div class="lab">'+lab+'</div><div class="val '+cls(val)+'">'+brl(val)+'</div></div>';}
+  document.getElementById('cards').innerHTML=
+    card('Saldo realizado (pago)',pago)+card('Saldo projetado (tudo)',proj)+
+    card('A pagar (pendente)',aPagar)+card('Dívida — total',divTotal)+card('Dívida — em aberto',divAberto);
+}
+
+function renderContas(){
+  var tb=document.getElementById('tbContas');
+  var lista=DADOS.contas.slice().sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
+  if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="empty">Nenhuma conta. Clique em “+ Lançamento”.</td></tr>';return;}
+  var html='', acc=DADOS.saldoInicial, ultMes=null;
+  lista.forEach(function(c){
+    if(c.mes!==ultMes){ultMes=c.mes;html+='<tr class="sep"><td colspan="6">'+(c.mes?'Mês seguinte':'Este mês')+'</td></tr>';}
+    acc+=c.valor;
+    html+='<tr class="'+(c.status==='pago'?'pago':'')+'">'+
+      '<td data-label="Dia"><span class="dia">'+c.dia+'</span></td>'+
+      '<td class="desc" data-label="Descrição"><div class="desc">'+esc(c.desc)+'</div><div class="rec">'+(c.rec?'<span class="on">↻ recorrente</span>':'avulsa')+'</div></td>'+
+      '<td class="num '+(c.valor<0?'neg':'pos')+'" data-label="Valor">'+brl(c.valor)+'</td>'+
+      '<td data-label="Status"><button class="st '+c.status+'" data-st="'+c.id+'">'+rotulo(c.status)+'</button>'+
+        (c.status==='pago'&&c.pagoEm?'<span class="when">em '+dataBR(c.pagoEm)+'</span>':'')+'</td>'+
+      '<td class="acc" data-label="Saldo">'+brl(acc)+'</td>'+
+      '<td data-label="Ações"><div class="act">'+
+        '<button data-up="'+c.id+'" title="subir">↑</button>'+
+        '<button data-down="'+c.id+'" title="descer">↓</button>'+
+        '<button data-edit="'+c.id+'">editar</button>'+
+      '</div></td></tr>';
+  });
+  tb.innerHTML=html;
+}
+
+function renderDividas(){
+  var tb=document.getElementById('tbDividas');
+  var lista=DADOS.dividas.slice().sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
+  if(!lista.length){tb.innerHTML='<tr><td colspan="10" class="empty">Nenhuma dívida.</td></tr>';return;}
+  var html='';
+  lista.forEach(function(d){
+    var dias=diasAte(d.proxima), falta=parcelasFalta(d.proxima,d.ultima);
+    html+='<tr class="'+(d.status==='pago'?'pago':'')+'">'+
+      '<td data-label="Dia"><span class="dia">'+d.dia+'</span></td>'+
+      '<td class="desc" data-label="Descrição">'+esc(d.desc)+'</td>'+
+      '<td class="mini" data-label="Tipo">'+esc(d.tipo||'')+'</td>'+
+      '<td class="num neg" data-label="Valor">'+brl(d.valor)+'</td>'+
+      '<td data-label="Status"><button class="st '+d.status+'" data-std="'+d.id+'">'+rotulo(d.status)+'</button></td>'+
+      '<td class="mini" data-label="Próxima">'+dataBR(d.proxima)+'</td>'+
+      '<td data-label="Dias">'+(dias===null?'—':'<span class="dias'+(dias<=5?' urg':'')+'">'+dias+'</span>')+'</td>'+
+      '<td data-label="Falta">'+(falta===null?'—':'<span class="falta">'+falta+'</span>')+'</td>'+
+      '<td class="mini" data-label="Última">'+dataBR(d.ultima)+'</td>'+
+      '<td data-label="Ações"><div class="act"><button data-editd="'+d.id+'">editar</button></div></td></tr>';
+  });
+  tb.innerHTML=html;
+}
+
+// ───────────── interações tabela ─────────────
+function proxStatus(s){return s==='pendente'?'pago':s==='pago'?'agendado':'pendente';}
+function acha(arr,id){return arr.filter(function(x){return x.id===id;})[0];}
+function mover(arr,id,dir){
+  var ord=arr.slice().sort(function(a,b){return a.ordem-b.ordem;});
+  var i=ord.findIndex(function(x){return x.id===id;}),j=i+dir;if(j<0||j>=ord.length)return;
+  var a=ord[i].ordem;ord[i].ordem=ord[j].ordem;ord[j].ordem=a;render();
+}
+document.getElementById('tbContas').addEventListener('click',function(e){
+  var t=e.target;
+  if(t.dataset.st){var c=acha(DADOS.contas,t.dataset.st);c.status=proxStatus(c.status);c.pagoEm=c.status==='pago'?hoje():null;render();}
+  else if(t.dataset.edit)abrir('conta',t.dataset.edit);
+  else if(t.dataset.up)mover(DADOS.contas,t.dataset.up,-1);
+  else if(t.dataset.down)mover(DADOS.contas,t.dataset.down,1);
+});
+document.getElementById('tbDividas').addEventListener('click',function(e){
+  var t=e.target;
+  if(t.dataset.std){var d=acha(DADOS.dividas,t.dataset.std);d.status=proxStatus(d.status);render();}
+  else if(t.dataset.editd)abrir('divida',t.dataset.editd);
+});
+
+// ───────────── abas ─────────────
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    abaAtual=t.dataset.tab;
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===t);});
+    document.getElementById('viewContas').style.display=abaAtual==='contas'?'':'none';
+    document.getElementById('viewDividas').style.display=abaAtual==='dividas'?'':'none';
+  });
+});
+
+// ───────────── diálogo add/editar ─────────────
+var dlg=document.getElementById('dlg'), editId=null, editKind=null;
+function abrir(kind,id){
+  editKind=kind;editId=id||null;var ehConta=kind==='conta';
+  document.getElementById('camposConta').style.display=ehConta?'':'none';
+  document.getElementById('camposDivida').style.display=ehConta?'none':'';
+  document.getElementById('btDel').style.display=id?'':'none';
+  document.getElementById('dlgTitle').textContent=(id?'Editar ':'Novo ')+(ehConta?'lançamento':'dívida');
+  var o=id?acha(ehConta?DADOS.contas:DADOS.dividas,id):null;
+  document.getElementById('f_dia').value=o?o.dia:'';
+  document.getElementById('f_valor').value=o?String(o.valor).replace('.',','):'';
+  document.getElementById('f_desc').value=o?o.desc:'';
+  if(ehConta){
+    document.getElementById('f_mes').value=o?(o.mes||0):0;
+    document.getElementById('f_status').value=o?o.status:'pendente';
+    document.getElementById('f_rec').checked=o?!!o.rec:true;
+    document.getElementById('f_pagoEm').value=o&&o.pagoEm?o.pagoEm:hoje();
+    togglePagoEm(document.getElementById('f_status').value);
+  }else{
+    document.getElementById('f_tipo').value=o?(o.tipo||'DÍVIDA'):'DÍVIDA';
+    document.getElementById('f_statusD').value=o?o.status:'pendente';
+    document.getElementById('f_proxima').value=o?(o.proxima||''):'';
+    document.getElementById('f_ultima').value=o?(o.ultima||''):'';
+    document.getElementById('campoPagoEm').style.display='none';
+  }
+  dlg.showModal();
+}
+function togglePagoEm(st){document.getElementById('campoPagoEm').style.display=(editKind==='conta'&&st==='pago')?'':'none';}
+document.getElementById('f_status').addEventListener('change',function(){togglePagoEm(this.value);});
+document.getElementById('form').addEventListener('submit',function(e){
+  e.preventDefault();
+  var dia=+document.getElementById('f_dia').value;
+  var valor=parseNum(document.getElementById('f_valor').value);
+  var desc=document.getElementById('f_desc').value.trim();
+  if(editKind==='conta'){
+    var st=document.getElementById('f_status').value;
+    var o=editId?acha(DADOS.contas,editId):{id:uid(),ordem:DADOS.contas.length};
+    o.dia=dia;o.valor=valor;o.desc=desc;o.status=st;
+    o.mes=+document.getElementById('f_mes').value;o.rec=document.getElementById('f_rec').checked;
+    o.pagoEm=st==='pago'?document.getElementById('f_pagoEm').value:null;
+    if(!editId)DADOS.contas.push(o);
+  }else{
+    var sd=document.getElementById('f_statusD').value;
+    var d=editId?acha(DADOS.dividas,editId):{id:uid(),ordem:DADOS.dividas.length};
+    d.dia=dia;d.valor=valor;d.desc=desc;d.status=sd;
+    d.tipo=document.getElementById('f_tipo').value;
+    d.proxima=document.getElementById('f_proxima').value||null;
+    d.ultima=document.getElementById('f_ultima').value||null;
+    if(!editId)DADOS.dividas.push(d);
+  }
+  dlg.close();render();
+});
+document.getElementById('btCancel').addEventListener('click',function(){dlg.close();});
+document.getElementById('btDel').addEventListener('click',function(){
+  if(!editId)return;if(!confirm('Excluir este lançamento?'))return;
+  if(editKind==='conta')DADOS.contas=DADOS.contas.filter(function(x){return x.id!==editId;});
+  else DADOS.dividas=DADOS.dividas.filter(function(x){return x.id!==editId;});
+  dlg.close();render();
+});
+document.getElementById('btAdd').addEventListener('click',function(){abrir(abaAtual==='dividas'?'divida':'conta',null);});
+
+// ───────────── novo ciclo ─────────────
+document.getElementById('btCiclo').addEventListener('click',function(){
+  if(!confirm('Novo ciclo:\n\n• saldo projetado vira o novo saldo inicial\n• contas recorrentes voltam a "pendente"\n• contas avulsas são removidas\n• lançamentos do "mês seguinte" passam a ser "este mês"\n\nContinuar?'))return;
+  var proj=DADOS.saldoInicial;DADOS.contas.forEach(function(c){proj+=c.valor;});
+  DADOS.saldoInicial=+proj.toFixed(2);
+  DADOS.contas=DADOS.contas.filter(function(c){return c.rec;});
+  DADOS.contas.forEach(function(c){c.status='pendente';c.pagoEm=null;c.mes=Math.max(0,(c.mes||0)-1);});
+  var p=DADOS.ciclo.split('-'),m=+p[1],y=+p[0];m++;if(m>12){m=1;y++;}
+  DADOS.ciclo=y+'-'+String(m).padStart(2,'0');render();
+});
+
+// ───────────── saldo inicial ─────────────
+document.getElementById('btSaldoIni').addEventListener('click',function(){
+  var v=prompt('Saldo inicial do ciclo (R$):',String(DADOS.saldoInicial).replace('.',','));
+  if(v===null)return;DADOS.saldoInicial=parseNum(v);render();
+});
+
+// ───────────── export / import JSON ─────────────
+document.getElementById('btExport').addEventListener('click',function(){
+  var blob=new Blob([JSON.stringify(DADOS,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='opus_'+DADOS.ciclo+'.json';a.click();URL.revokeObjectURL(a.href);
+});
+document.getElementById('btImport').addEventListener('click',function(){document.getElementById('fileInput').click();});
+document.getElementById('fileInput').addEventListener('change',function(e){
+  var f=e.target.files[0];if(!f)return;var r=new FileReader();
+  r.onload=function(){try{var d=JSON.parse(r.result);if(!d.contas||!d.dividas)throw new Error('JSON sem contas/dividas');DADOS=d;render();alert('Importado.');}catch(err){alert('JSON inválido: '+err.message);}};
+  r.readAsText(f);e.target.value='';
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  SYNC — GitHub Contents API
+// ═══════════════════════════════════════════════════════════════════════════
+var CFG=loadCfg(), remoteSha=null, pushTimer=null, syncBusy=false;
+function loadCfg(){try{var s=localStorage.getItem(GKEY);if(s)return JSON.parse(s);}catch(e){}return {owner:'Abelvilas',repo:'Be',path:'opus.json',branch:'main',token:''};}
+function saveCfg(){try{localStorage.setItem(GKEY,JSON.stringify(CFG));}catch(e){}}
+function temGit(){return CFG.owner&&CFG.repo&&CFG.path&&CFG.token;}
+function setSync(txt,cls){var el=document.getElementById('syncLab');el.textContent=txt;el.className='sync '+(cls||'');}
+function ghHeaders(){return {'Authorization':'Bearer '+CFG.token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};}
+function apiUrl(){return 'https://api.github.com/repos/'+CFG.owner+'/'+CFG.repo+'/contents/'+CFG.path.split('/').map(encodeURIComponent).join('/');}
+function b64enc(str){return btoa(unescape(encodeURIComponent(str)));}
+function b64dec(b64){return decodeURIComponent(escape(atob(String(b64).replace(/\s/g,''))));}
+
+async function getRemote(){
+  var r=await fetch(apiUrl()+'?ref='+encodeURIComponent(CFG.branch)+'&t='+Date.now(),{headers:ghHeaders(),cache:'no-store'});
+  if(r.status===404)return {missing:true};
+  if(!r.ok)throw new Error('HTTP '+r.status+(r.status===401?' (token inválido)':r.status===404?' (repo/arquivo não achado)':''));
+  return await r.json();
+}
+async function puxar(silencioso){
+  if(!temGit())return;
+  setSync('⏳ puxando…','busy');
+  try{
+    var j=await getRemote();
+    if(j.missing){remoteSha=null;setSync('☁ vazio — envie','warn');if(!silencioso)alert('O arquivo ainda não existe no git. Use "Enviar pro git" para criar.');return;}
+    remoteSha=j.sha;
+    var obj=JSON.parse(b64dec(j.content));
+    if(obj&&obj.contas&&obj.dividas){DADOS=obj;renderLocal();}
+    setSync('☁ sincronizado','ok');
+  }catch(e){setSync('⚠ offline','warn');if(!silencioso)alert('Não consegui puxar: '+e.message);}
+}
+function agendarPush(){if(!temGit())return;clearTimeout(pushTimer);setSync('⏳ salvando…','busy');pushTimer=setTimeout(function(){enviar(false);},1400);}
+async function enviar(reintento){
+  if(!temGit())return;
+  if(syncBusy){agendarPush();return;}
+  syncBusy=true;setSync('⏳ salvando…','busy');
+  try{
+    var body={message:'opus update '+new Date().toISOString(),content:b64enc(JSON.stringify(DADOS,null,2)),branch:CFG.branch};
+    if(remoteSha)body.sha=remoteSha;
+    var r=await fetch(apiUrl(),{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
+    if((r.status===409||r.status===422)&&!reintento){
+      syncBusy=false;
+      var q=confirm('Conflito: o git tem uma versão mais nova (outro aparelho?).\n\nOK = trazer do git (descarta mudanças locais)\nCancelar = enviar mesmo assim (sobrescreve o git)');
+      if(q){await puxar(true);return;}
+      var jj=await getRemote();remoteSha=jj&&jj.sha||null;return enviar(true);
+    }
+    if(!r.ok)throw new Error('HTTP '+r.status+(r.status===401?' (token)':''));
+    var j=await r.json();remoteSha=j.content.sha;setSync('☁ sincronizado','ok');
+  }catch(e){setSync('⚠ erro ao salvar','warn');}
+  finally{syncBusy=false;}
+}
+
+// diálogo git
+var dlgGit=document.getElementById('dlgGit');
+function abrirGit(){
+  document.getElementById('g_owner').value=CFG.owner||'';
+  document.getElementById('g_repo').value=CFG.repo||'';
+  document.getElementById('g_path').value=CFG.path||'cash.json';
+  document.getElementById('g_branch').value=CFG.branch||'main';
+  document.getElementById('g_token').value=CFG.token||'';
+  document.getElementById('g_msg').textContent='';
+  dlgGit.showModal();
+}
+function lerDlgGit(){
+  CFG.owner=document.getElementById('g_owner').value.trim();
+  CFG.repo=document.getElementById('g_repo').value.trim();
+  CFG.path=document.getElementById('g_path').value.trim()||'cash.json';
+  CFG.branch=document.getElementById('g_branch').value.trim()||'main';
+  CFG.token=document.getElementById('g_token').value.trim();
+}
+function gmsg(t,erro){var el=document.getElementById('g_msg');el.textContent=t;el.style.color=erro?'var(--alerta)':'var(--ok)';}
+document.getElementById('btGit').addEventListener('click',abrirGit);
+document.getElementById('g_close').addEventListener('click',function(){dlgGit.close();});
+document.getElementById('g_save').addEventListener('click',function(){lerDlgGit();saveCfg();dlgGit.close();setSync(temGit()?'☁ configurado':'local',temGit()?'ok':'');if(temGit())puxar(true);});
+document.getElementById('g_test').addEventListener('click',async function(){
+  lerDlgGit();if(!temGit()){gmsg('Preencha owner, repo, path e token.',true);return;}
+  gmsg('Testando…');try{var j=await getRemote();gmsg(j.missing?'OK — conectou (arquivo ainda não existe; pode enviar).':'OK — conectou e achou o arquivo.');}catch(e){gmsg('Falhou: '+e.message,true);}
+});
+document.getElementById('g_pull').addEventListener('click',async function(){lerDlgGit();saveCfg();gmsg('Puxando…');await puxar(false);gmsg('Pronto.');});
+document.getElementById('g_push').addEventListener('click',async function(){lerDlgGit();saveCfg();gmsg('Enviando…');await enviar(false);gmsg('Pronto.');});
+
+// ───────────── start ─────────────
+renderLocal();
+if(temGit()){setSync('☁ configurado','ok');puxar(true);}else{setSync('local','');}
+</script>
+</body>
+</html>
